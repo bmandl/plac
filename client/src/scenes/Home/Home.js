@@ -16,7 +16,9 @@ const Home = () => {
 
     return (
         <div className="calendar-container">
-            <FullCalendar ref={calendarRef} defaultView="dayGridMonth" plugins={[dayGridPlugin, timeGridPlugin, interaction]} height={"parent"} header={{left:'title',center:'',right:'dayGridMonth today prev,next'}}
+            <FullCalendar ref={calendarRef} defaultView="dayGridMonth" plugins={[dayGridPlugin, timeGridPlugin, interaction]} height={"parent"} locale="sl"
+            header={{left:'title',center:'',right:'dayGridMonth today prev,next'}} 
+            buttonText={{today: "Danes",month:"Mesec",week:"Teden",day:"Dan",list:"Seznam"}}
                 dateClick={handleDayClick}
             />
         </div>
