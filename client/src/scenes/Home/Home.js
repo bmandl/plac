@@ -9,9 +9,9 @@ import './Home.scss';
 
 const Home = () => {
     const calendarRef = useRef(null);
-    //const api = calendarRef.current.getApi();
     const [selectable, setSelectable] = useState();
     const [formVisible, showForm] = useState();
+    const [selected, setSelected] = useState();
 
     useEffect(() => {
         if (!selectable) calendarRef.current.getApi().updateSize();
@@ -29,17 +29,30 @@ const Home = () => {
 
     const handleTimeSelect = selectionInfo => {
         //odpiranje forme za dodajanje eventa
-        calendarRef.current.getApi().addEvent({
-            //title:prompt("Ime: "),
+        setSelected({
             start: selectionInfo.start,
             end: selectionInfo.end,
             durationEditable: true,
             startEditable: true,
             editable: true
-        })
-        //let opomba = prompt("Opomba: ");
-        console.log(calendarRef.current.getApi().getEvents())
-        showForm(true);
+        });
+        showForm(true); //open form
+    }
+
+    const addEvent = (formData) => {
+        const ref = calendarRef.current;
+        const api = ref.getApi();
+        let event = { ...selected, title: formData.Namen }
+        let newStart = new Date(selected.start);    //new start from form
+        let newEnd = new Date(selected.end);    //new end from form
+        newStart.setHours(Math.floor(formData.Od / 60));
+        newStart.setMinutes(formData.Od % 60);
+        newEnd.setHours(Math.floor(formData.Do / 60));
+        newEnd.setMinutes(formData.Do % 60);
+        event.start = newStart;
+        event.end = newEnd;
+        api.addEvent(event);
+        showForm(false);    //close form
     }
 
     return (
@@ -55,7 +68,10 @@ const Home = () => {
             </div>
             {formVisible &&
                 <EventForm date={calendarRef.current.getApi().formatIso(calendarRef.current.getApi().getDate(), { omitTime: true })}
+                    start={selected.start.getHours() * 60 + selected.start.getMinutes()}
+                    end={selected.end.getHours() * 60 + selected.end.getMinutes()}
                     onClose={() => showForm(false)}
+                    onSubmit={addEvent}
                 />}
         </>
     )

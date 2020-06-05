@@ -3,9 +3,12 @@ import { useForm } from 'react-hook-form';
 import './EventForm.scss';
 
 const EventForm = (props) => {
-    const { register, handleSubmit, errors, watch } = useForm();
-    const onSubmit = data => console.log(data);
-    console.log(props.date);
+    const { register, handleSubmit, errors, watch } = useForm({
+        defaultValues:{
+            Od:props.start,
+            Do:props.end
+        }
+    });
 
     const optionsDuration = (start) => {
 
@@ -13,7 +16,7 @@ const EventForm = (props) => {
         let times = []; // time array
         let tt;
         isNaN(start) ? tt = 0 : tt = start + x; // start time
-        //loop to increment the time and push results in array
+        //loop to increment the time and push results in array        
         for (let i = 0; tt < 24 * 60; i++) {            
             let hh = Math.floor(tt / 60); // getting hours of day in 0-24 format
             let mm = (tt % 60); // getting minutes of the hour in 0-55 format
@@ -28,7 +31,7 @@ const EventForm = (props) => {
     return (
         <div className="form-modal">
             <div className="form-container">
-                <form onSubmit={handleSubmit(onSubmit)}>
+                <form onSubmit={handleSubmit(props.onSubmit)}>
                     <input type="text" placeholder="Namen" name="Namen" ref={register({ required: true, min: 3 })} />
                     <label htmlFor="Datum">Datum</label>
                     <input type="date" defaultValue={props.date} placeholder="Datum" name="Datum" ref={register({ required: true })} />
