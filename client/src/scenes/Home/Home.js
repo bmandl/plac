@@ -9,6 +9,7 @@ import './Home.scss';
 
 const Home = () => {
     const calendarRef = useRef(null);
+    //const api = calendarRef.current.getApi();
     const [selectable, setSelectable] = useState();
     const [formVisible, showForm] = useState();
 
@@ -44,7 +45,7 @@ const Home = () => {
     return (
         <>
             <div className="calendar-container">
-                <FullCalendar ref={calendarRef} defaultView="dayGridMonth" plugins={[dayGridPlugin, timeGridPlugin, interaction]} height={"parent"} locale="sl" selectable={selectable} eventOverlap={false}
+                <FullCalendar ref={calendarRef} defaultView="dayGridMonth" timezone="local" plugins={[dayGridPlugin, timeGridPlugin, interaction]} height={"parent"} locale="sl" selectable={selectable} eventOverlap={false}
                     header={{ left: 'title', center: '', right: 'dayGridMonth today prev,next' }}
                     buttonText={{ today: "Danes", month: "Mesec", week: "Teden", day: "Dan", list: "Seznam" }}
                     dateClick={handleDayClick}
@@ -52,7 +53,10 @@ const Home = () => {
                     select={handleTimeSelect}
                 />
             </div>
-            {formVisible && <EventForm />}
+            {formVisible &&
+                <EventForm date={calendarRef.current.getApi().formatIso(calendarRef.current.getApi().getDate(), { omitTime: true })}
+                    onClose={() => showForm(false)}
+                />}
         </>
     )
 
