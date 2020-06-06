@@ -43,9 +43,7 @@ const Home = () => {
             startEditable: true,
             editable: true
         });
-        //setDate(api.formatIso(selectionInfo.start, { omitTime: true }))
-        console.log(typeof new Date(selectionInfo.start));
-        //console.log(api.formatIso(new Date(selectionInfo.start), { omitTime: true }));
+        setDate(selectionInfo.start.toISOString().split('T',1)[0]); //get current date from selected event and ommit time
         setEvents(api.getEvents());
         showForm(true); //open form
     }
