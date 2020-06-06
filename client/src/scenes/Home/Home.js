@@ -15,15 +15,17 @@ const Home = () => {
     const [selected, setSelected] = useState();
     const [eventId, setEventId] = useState();
     const [events,setEvents] = useState();
+    const [date,setDate] = useState();
 
     useEffect(() => {
         if (!selectable) calendarRef.current.getApi().updateSize();
     })
 
     const handleDayClick = dateClickInfo => {
-        calendarRef.current.getApi()
-            .changeView("timeGridDay", dateClickInfo.date)
+        const api = calendarRef.current.getApi();
+        api.changeView("timeGridDay", dateClickInfo.date)
         if (!selectable) setSelectable(true);
+        setDate(api.formatIso(api.getDate(), { omitTime: true }));
     }
 
     const handleMonthClick = el => {
@@ -32,6 +34,7 @@ const Home = () => {
 
     const handleTimeSelect = selectionInfo => {
         //odpiranje forme za dodajanje eventa
+        const api = calendarRef.current.getApi();
         setSelected({
             title: selectionInfo.title,
             start: selectionInfo.start,
@@ -40,7 +43,10 @@ const Home = () => {
             startEditable: true,
             editable: true
         });
-        setEvents(calendarRef.current.getApi().getEvents());
+        //setDate(api.formatIso(selectionInfo.start, { omitTime: true }))
+        console.log(typeof new Date(selectionInfo.start));
+        //console.log(api.formatIso(new Date(selectionInfo.start), { omitTime: true }));
+        setEvents(api.getEvents());
         showForm(true); //open form
     }
 
@@ -75,7 +81,7 @@ const Home = () => {
 
     const handleEventClick = eventClickInfo => {
         setEventId(eventClickInfo.event.id);
-        handleTimeSelect(eventClickInfo.event);
+        handleTimeSelect(eventClickInfo.event);                
     }
 
     return (
@@ -91,7 +97,7 @@ const Home = () => {
                 />
             </div>
             {formVisible &&
-                <EventForm date={calendarRef.current.getApi().formatIso(calendarRef.current.getApi().getDate(), { omitTime: true })}
+                <EventForm date={date}
                     events={events}
                     title={selected.title}
                     start={selected.start.getHours() * 60 + selected.start.getMinutes()}

@@ -7,7 +7,8 @@ const EventForm = (props) => {
         defaultValues: {
             Namen: props.title,
             Od: props.start,
-            Do: props.end
+            Do: props.end,
+            Datum: props.date
         }
     });
 
@@ -55,7 +56,7 @@ const EventForm = (props) => {
                 <form onSubmit={handleSubmit(props.onSubmit)}>
                     <input type="text" placeholder="Namen" name="Namen" ref={register({ required: true, min: 3 })} />
                     <label htmlFor="Datum">Datum</label>
-                    <input type="date" defaultValue={props.date} placeholder="Datum" name="Datum" ref={register({ required: true })} />
+                    <input type="date" placeholder="Datum" name="Datum" ref={register({ required: true })} />
                     <label htmlFor="Od">Od</label>
                     <select name="Od" ref={register({ required: true, validate: validateDuration })}>
                         {optionsDuration()}
