@@ -5,6 +5,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interaction from '@fullcalendar/interaction'
 import EventForm from './components/EventForm';
 import v4 from 'uuid/dist/v4';
+import googleCalendarPlugin from '@fullcalendar/google-calendar';
 
 import './Home.scss';
 
@@ -14,11 +15,12 @@ const Home = () => {
     const [formVisible, showForm] = useState();
     const [selected, setSelected] = useState();
     const [eventId, setEventId] = useState();
-    const [events,setEvents] = useState();
-    const [date,setDate] = useState();
+    const [events, setEvents] = useState();
+    const [date, setDate] = useState();
 
     useEffect(() => {
         if (!selectable) calendarRef.current.getApi().updateSize();
+        console.log(calendarRef.current.getApi().refetchEvents());
     })
 
     const handleDayClick = dateClickInfo => {
@@ -43,7 +45,7 @@ const Home = () => {
             startEditable: true,
             editable: true
         });
-        setDate(selectionInfo.start.toISOString().split('T',1)[0]); //get current date from selected event and ommit time
+        setDate(selectionInfo.start.toISOString().split('T', 1)[0]); //get current date from selected event and ommit time
         setEvents(api.getEvents());
         showForm(true); //open form
     }
@@ -79,13 +81,15 @@ const Home = () => {
 
     const handleEventClick = eventClickInfo => {
         setEventId(eventClickInfo.event.id);
-        handleTimeSelect(eventClickInfo.event);                
+        handleTimeSelect(eventClickInfo.event);
     }
 
     return (
         <>
             <div className="calendar-container">
-                <FullCalendar ref={calendarRef} defaultView="dayGridMonth" timezone="local" plugins={[dayGridPlugin, timeGridPlugin, interaction]} height={"parent"} locale="sl" editable={true} selectable={selectable} eventOverlap={false}
+                <FullCalendar ref={calendarRef} defaultView="dayGridMonth" timeZone="Europe/Belgrade" plugins={[dayGridPlugin, timeGridPlugin, interaction, googleCalendarPlugin]} height={"parent"} locale="sl" editable={true} selectable={selectable} eventOverlap={false}
+                    googleCalendarApiKey={'AIzaSyB1Nu5mIggBFCFI1lkzfN5FY290fLxGVsM'}
+                    events={{ googleCalendarId: 'c5hkefpkj4oihho4cf6gq30gbo@group.calendar.google.com' }}
                     header={{ left: 'title', center: '', right: 'dayGridMonth today prev,next' }}
                     buttonText={{ today: "Danes", month: "Mesec", week: "Teden", day: "Dan", list: "Seznam" }}
                     dateClick={handleDayClick}
