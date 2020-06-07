@@ -44,8 +44,6 @@ const EventForm = (props) => {
             Od.setMinutes(watch("Od") % 60);
             Do.setHours(Math.floor(watch("Do") / 60));
             Do.setMinutes(watch("Do") % 60);
-            console.log(Od);
-            console.log(event.end);
             return (Od < event.start && Do <= event.start) || (Od >= event.end && Do > event.end)
         })
     }

@@ -18,9 +18,11 @@ const Home = () => {
     const [events, setEvents] = useState();
     const [date, setDate] = useState();
 
+    const googleId=v4();
+    const eventSource = {id: googleId,googleCalendarId: 'c5hkefpkj4oihho4cf6gq30gbo@group.calendar.google.com' };
+
     useEffect(() => {
         if (!selectable) calendarRef.current.getApi().updateSize();
-        console.log(calendarRef.current.getApi().refetchEvents());
     })
 
     const handleDayClick = dateClickInfo => {
@@ -63,10 +65,11 @@ const Home = () => {
         newEnd.setMinutes(formData.Do % 60);
 
         if (!eventId) { //adding new event if no event is selected for editing
-            let event = { ...selected, id, title: formData.Namen }
+            let event = { ...selected, id, title: formData.Namen, googleCalendarId: 'c5hkefpkj4oihho4cf6gq30gbo@group.calendar.google.com' }
             event.start = newStart;
             event.end = newEnd;
-            api.addEvent(event);
+            api.addEvent(event,eventSource.id);
+            console.log(eventSource)
         }
 
         else {  //editing existing clicked event
@@ -89,7 +92,7 @@ const Home = () => {
             <div className="calendar-container">
                 <FullCalendar ref={calendarRef} defaultView="dayGridMonth" timeZone="Europe/Belgrade" plugins={[dayGridPlugin, timeGridPlugin, interaction, googleCalendarPlugin]} height={"parent"} locale="sl" editable={true} selectable={selectable} eventOverlap={false}
                     googleCalendarApiKey={'AIzaSyB1Nu5mIggBFCFI1lkzfN5FY290fLxGVsM'}
-                    events={{ googleCalendarId: 'c5hkefpkj4oihho4cf6gq30gbo@group.calendar.google.com' }}
+                    events={eventSource}
                     header={{ left: 'title', center: '', right: 'dayGridMonth today prev,next' }}
                     buttonText={{ today: "Danes", month: "Mesec", week: "Teden", day: "Dan", list: "Seznam" }}
                     dateClick={handleDayClick}
