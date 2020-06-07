@@ -18,8 +18,10 @@ const Home = () => {
     const [events, setEvents] = useState();
     const [date, setDate] = useState();
 
-    const googleId=v4();
-    const eventSource = {id: googleId,googleCalendarId: 'c5hkefpkj4oihho4cf6gq30gbo@group.calendar.google.com' };
+    const googleId = v4();
+    const eventSource = {
+        id: googleId, googleCalendarId: 'c5hkefpkj4oihho4cf6gq30gbo@group.calendar.google.com',
+    };
 
     useEffect(() => {
         if (!selectable) calendarRef.current.getApi().updateSize();
@@ -65,11 +67,11 @@ const Home = () => {
         newEnd.setMinutes(formData.Do % 60);
 
         if (!eventId) { //adding new event if no event is selected for editing
-            let event = { ...selected, id, title: formData.Namen, googleCalendarId: 'c5hkefpkj4oihho4cf6gq30gbo@group.calendar.google.com' }
+            let event = { ...selected, id, title: formData.Namen }
             event.start = newStart;
             event.end = newEnd;
-            api.addEvent(event,eventSource.id);
-            console.log(eventSource)
+            console.log(api.addEvent(event));
+            console.log(api.getEvents());
         }
 
         else {  //editing existing clicked event
