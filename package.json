@@ -1,15 +1,15 @@
 {
   "name": "plac",
-  "version": "1.0.0",
-  "description": "Reservation system for \"plac\"",
-  "main": "index.js",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "author": "Blaž Mandl",
-  "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
-    "mongoose": "^5.9.16"
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "googleapis": "^52.1.0",
+    "morgan": "~1.9.1"
   }
 }
