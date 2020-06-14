@@ -6,18 +6,18 @@ let privatekey = require('path').resolve(__dirname, '..') + "\\privatekey.json";
 let googleCalendar = (() => {
 
     //Google Calendar API
-    let _calendar = google.calendar('v3');
+    const _calendar = google.calendar('v3');
     const _auth = new google.auth.GoogleAuth({
         keyFile: privatekey,
         scopes: ['https://www.googleapis.com/auth/calendar']
     });
 
-    async function _connect() {
+    const _connect = async () => {
         // configure a JWT auth client        
         try {
             const res = await _auth.getClient();
             google.options('auth', res);
-            console.log(res);
+            //console.log(res);
             return 200;
         }
         catch (err) {
@@ -27,93 +27,70 @@ let googleCalendar = (() => {
     }
 
 
-    let list = async () => {
-        try {
-            let response = await _calendar.events.list({
-                auth: _auth,
-                calendarId: 'placmezica@gmail.com'
-            });
-
-            let events = response.data.items;
-
-            if (events.length == 0) {
-                console.log('No events found.');
-                return null;
-            }
-
-            console.log('Event from Google Calendar:');
-            for (let event of events) {
-                console.log('Event name: %s, Creator name: %s, Create date: %s', event.summary, event.creator.displayName, event.start.date);
-            }
-            return events;
-        }
-
-        catch (err) {
-            return err;
-        }
+    let list = () => {
+        return _calendar.events.list({
+            auth: _auth,
+            calendarId: 'placmezica@gmail.com'
+        });
     }
 
-    let insert = async (event) => {
-        try {
-            const res = await _calendar.events.insert({
-                auth:_auth,
-                // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
-                calendarId: 'placmezica@gmail.com',
-                // Request body metadata
-                requestBody: {
-                    // request body parameters
-                    // {
-                    //   "anyoneCanAddSelf": false,
-                    //   "attachments": [],
-                    //   "attendees": [],
-                    //   "attendeesOmitted": false,
-                    //   "colorId": "my_colorId",
-                    //   "conferenceData": {},
-                    //   "created": "my_created",
-                    //   "creator": {},
-                    //   "description": "my_description",
-                    "end": {
-                        "date" : "2020-06-10"
-                    },
-                    //   "endTimeUnspecified": false,
-                    //   "etag": "my_etag",
-                    //   "extendedProperties": {},
-                    //   "gadget": {},
-                    //   "guestsCanInviteOthers": false,
-                    //   "guestsCanModify": false,
-                    //   "guestsCanSeeOtherGuests": false,
-                    //   "hangoutLink": "my_hangoutLink",
-                    //   "htmlLink": "my_htmlLink",
-                    //   "iCalUID": "my_iCalUID",
-                    //   "id": "my_id",
-                    //   "kind": "my_kind",
-                    //   "location": "my_location",
-                    //   "locked": false,
-                    //   "organizer": {},
-                    //   "originalStartTime": {},
-                    //   "privateCopy": false,
-                    //   "recurrence": [],
-                    //   "recurringEventId": "my_recurringEventId",
-                    //   "reminders": {},
-                    //   "sequence": 0,
-                    //   "source": {},
-                    "start": {
-                        "date" : "2020-06-09"
-                    },
-                    //   "status": "my_status",
-                    //   "summary": "my_summary",
-                    //   "transparency": "my_transparency",
-                    //   "updated": "my_updated",
-                    //   "visibility": "my_visibility"
-                    // }
-                }
-            })
+    let insert = (event) => {
 
-            console.log(res.data);
-        }
-        catch (err) {
-            console.log(err);
-        }
+        return _calendar.events.insert({
+            auth: _auth,
+            // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
+            calendarId: 'placmezica@gmail.com',
+            // Request body metadata
+            requestBody:
+            // request body parameters
+            {
+                //   "anyoneCanAddSelf": false,
+                //   "attachments": [],
+                //"attendees": event.attendees,
+                //   "attendeesOmitted": false,
+                //   "colorId": "my_colorId",
+                //   "conferenceData": {},
+                //   "created": "my_created",
+                //"creator": event.creator,
+                //"description": event.description,
+                "end": {
+                    //timeZone: "Europe/Belgrade",
+                    dateTime: event.end
+                },
+                //   "endTimeUnspecified": false,
+                //   "etag": "my_etag",
+                //"extendedProperties": event.extendedProperties,
+                //   "gadget": {},
+                //   "guestsCanInviteOthers": false,
+                //   "guestsCanModify": false,
+                //   "guestsCanSeeOtherGuests": false,
+                //   "hangoutLink": "my_hangoutLink",
+                //   "htmlLink": "my_htmlLink",
+                //   "iCalUID": "my_iCalUID",
+                //"id": event.id,
+                //   "kind": "my_kind",
+                //   "location": "my_location",
+                //   "locked": false,
+                //"organizer": event.organizer,
+                //   "originalStartTime": {},
+                //   "privateCopy": false,
+                //   "recurrence": [],
+                //   "recurringEventId": "my_recurringEventId",
+                //   "reminders": {},
+                //   "sequence": 0,
+                //   "source": {},
+                "start": {
+                    //timeZone: "Europe/Belgrade",
+                    dateTime: event.start
+                },
+                //"status": event.status,
+                //"summary": event.summary,
+                //   "transparency": "my_transparency",
+                //   "updated": "my_updated",
+                //   "visibility": "my_visibility"
+            }
+
+        })
     }
 
     return {
@@ -129,12 +106,35 @@ router.use((req, res, next) => {
     next();
 })
 
-router.get('/list', async function (req, res, next) {
-    res.send(await googleCalendar.list());
+router.get('/list', (req, res, next) => {
+    googleCalendar.list().then(
+        obj => {
+            const events = obj.data.items;
+            if (events.length == 0) {
+                res.status(200).send('No events found.');
+            }
+            let text = 'Event from Google Calendar:\n';
+            for (let event of events) {
+                text += ('Event name: %s, Creator name: %s, Create date: %s\n', event.summary, event.creator.displayName, event.start.date);
+            }
+            res.status(200).send(text);
+        },
+        err => res.status(500).send(err)
+    );
 });
 
-router.get('/insert', (req, res, next) => {
-    googleCalendar.insert({});
-})
+router.post('/insert', (req, res, next) => {
+    console.log(req.body.start);
+    googleCalendar.insert(req.body).then(
+        obj => {
+            //console.log(obj.data);
+            console.log(obj.data.start);
+            res.status(200).send(obj);
+        },
+        err => {
+            //console.log(err);
+            res.status(500).send(err);
+        });
+});
 
 module.exports = router;

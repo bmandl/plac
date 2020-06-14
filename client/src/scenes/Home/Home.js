@@ -20,7 +20,7 @@ const Home = () => {
 
     const googleId = v4();
     const eventSource = {
-        id: googleId, googleCalendarId: 'c5hkefpkj4oihho4cf6gq30gbo@group.calendar.google.com',
+        id: googleId, googleCalendarId: 'placmezica@gmail.com',
     };
 
     useEffect(() => {
@@ -71,6 +71,13 @@ const Home = () => {
             event.start = newStart;
             event.end = newEnd;
             console.log(api.addEvent(event));
+            fetch('/api/calendar/insert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(event)
+            }).then(() => console.log("success"), err => console.log(err));
             console.log(api.getEvents());
         }
 
@@ -92,7 +99,7 @@ const Home = () => {
     return (
         <>
             <div className="calendar-container">
-                <FullCalendar ref={calendarRef} defaultView="dayGridMonth" timeZone="Europe/Belgrade" plugins={[dayGridPlugin, timeGridPlugin, interaction, googleCalendarPlugin]} height={"parent"} locale="sl" editable={true} selectable={selectable} eventOverlap={false}
+                <FullCalendar ref={calendarRef} defaultView="dayGridMonth" /*timeZone="Europe/Belgrade"*/ plugins={[dayGridPlugin, timeGridPlugin, interaction, googleCalendarPlugin]} height={"parent"} locale="sl" editable={true} selectable={selectable} eventOverlap={false}
                     googleCalendarApiKey={'AIzaSyB1Nu5mIggBFCFI1lkzfN5FY290fLxGVsM'}
                     events={eventSource}
                     header={{ left: 'title', center: '', right: 'dayGridMonth today prev,next' }}
