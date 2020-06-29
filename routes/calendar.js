@@ -52,7 +52,7 @@ let googleCalendar = (() => {
                 //   "conferenceData": {},
                 //   "created": "my_created",
                 //"creator": event.creator,
-                //"description": event.description,
+                "description": event.description,
                 "end": {
                     //timeZone: "Europe/Belgrade",
                     dateTime: event.end
@@ -84,7 +84,7 @@ let googleCalendar = (() => {
                     dateTime: event.start
                 },
                 //"status": event.status,
-                //"summary": event.summary,
+                "summary": event.title,
                 //   "transparency": "my_transparency",
                 //   "updated": "my_updated",
                 //   "visibility": "my_visibility"
@@ -128,8 +128,8 @@ router.post('/insert', (req, res, next) => {
     googleCalendar.insert(req.body).then(
         obj => {
             //console.log(obj.data);
-            console.log(obj.data.start);
-            res.status(200).send(obj);
+            console.log(obj.data.id);
+            res.status(200).json(obj.data);
         },
         err => {
             //console.log(err);

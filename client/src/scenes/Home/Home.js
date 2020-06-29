@@ -8,6 +8,7 @@ import v4 from 'uuid/dist/v4';
 import googleCalendarPlugin from '@fullcalendar/google-calendar';
 
 import './Home.scss';
+import { DayTable } from '@fullcalendar/core';
 
 const Home = () => {
     const calendarRef = useRef(null);
@@ -55,7 +56,7 @@ const Home = () => {
     }
 
     const addEvent = formData => {
-        const id = eventId ? eventId : v4();
+        let id;// = eventId ? eventId : v4();
         const ref = calendarRef.current;
         const api = ref.getApi();
 
@@ -67,18 +68,21 @@ const Home = () => {
         newEnd.setMinutes(formData.Do % 60);
 
         if (!eventId) { //adding new event if no event is selected for editing
-            let event = { ...selected, id, title: formData.Namen }
+            let event = { ...selected, /*id,*/ title: formData.Namen, description: formData.Opombe }
             event.start = newStart;
             event.end = newEnd;
-            console.log(api.addEvent(event));
             fetch('/api/calendar/insert', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(event)
-            }).then(() => console.log("success"), err => console.log(err));
-            console.log(api.getEvents());
+            }).then(response => response.json(), err => console.log(err))
+                .then(event => {
+                    api.addEvent(event);
+                    id = event.id;
+                    console.log("Success. Calendar with id: " + event.id + " added.")
+                });
         }
 
         else {  //editing existing clicked event
