@@ -29,11 +29,10 @@ const Home = () => {
     })
 
     useEffect(() => {
-        if (eventId){
-            //handleTimeSelect(calendarRef.current.getApi().getEventById(eventId));
-            calendarRef.current.getApi().refetchEvents();
-            console.log(calendarRef.current.getApi().getEvents())   //not working becouse of google source - clientside memory is empty - fix it!
-        }
+        const api = calendarRef.current.getApi();
+        api.refetchEvents();
+        if (eventId)
+            handleTimeSelect(api.getEventById(eventId));            
     }, [eventId])
 
     const handleDayClick = dateClickInfo => {
@@ -61,7 +60,7 @@ const Home = () => {
         });
         setDate(selectionInfo.start.toISOString().split('T', 1)[0]); //get current date from selected event and ommit time
         api.refetchEvents();
-        setEvents(api.getEvents()); //not working becouse of google source - clientside memory is empty - fix it!
+        setEvents(api.getEvents()); 
         showForm(true); //open form
     }
 
@@ -130,7 +129,7 @@ const Home = () => {
             <div className="calendar-container">
                 <FullCalendar ref={calendarRef} defaultView="dayGridMonth" /*timeZone="Europe/Belgrade"*/ plugins={[dayGridPlugin, timeGridPlugin, interaction, googleCalendarPlugin]} height={"parent"} locale="sl" editable={true} selectable={selectable} eventOverlap={false}
                     googleCalendarApiKey={'AIzaSyB1Nu5mIggBFCFI1lkzfN5FY290fLxGVsM'}
-                    events={eventSource}
+                    events={{ googleCalendarId: 'placmezica@gmail.com' }}
                     header={{ left: 'title', center: '', right: 'dayGridMonth today prev,next' }}
                     buttonText={{ today: "Danes", month: "Mesec", week: "Teden", day: "Dan", list: "Seznam" }}
                     dateClick={handleDayClick}
