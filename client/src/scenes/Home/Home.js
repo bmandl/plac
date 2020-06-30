@@ -4,11 +4,9 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interaction from '@fullcalendar/interaction'
 import EventForm from './components/EventForm';
-import v4 from 'uuid/dist/v4';
 import googleCalendarPlugin from '@fullcalendar/google-calendar';
 
 import './Home.scss';
-import { DayTable } from '@fullcalendar/core';
 
 const Home = () => {
     const calendarRef = useRef(null);
@@ -18,11 +16,6 @@ const Home = () => {
     const [eventId, setEventId] = useState();
     const [events, setEvents] = useState();
     const [date, setDate] = useState();
-
-    const googleId = v4();
-    const eventSource = {
-        id: googleId, googleCalendarId: 'placmezica@gmail.com',
-    };
 
     useEffect(() => {
         if (!selectable) calendarRef.current.getApi().updateSize();
@@ -121,14 +114,13 @@ const Home = () => {
     const handleEventClick = eventClickInfo => {
         eventClickInfo.jsEvent.preventDefault();    // don't let the browser navigate
         setEventId(eventClickInfo.event.id);
-        //handleTimeSelect(eventClickInfo.event);
     }
 
     return (
         <>
             <div className="calendar-container">
                 <FullCalendar ref={calendarRef} defaultView="dayGridMonth" /*timeZone="Europe/Belgrade"*/ plugins={[dayGridPlugin, timeGridPlugin, interaction, googleCalendarPlugin]} height={"parent"} locale="sl" editable={true} selectable={selectable} eventOverlap={false}
-                    googleCalendarApiKey={'AIzaSyB1Nu5mIggBFCFI1lkzfN5FY290fLxGVsM'}
+                    googleCalendarApiKey={'AIzaSyALhZsxEXSniZvvpy4IpysyHZ47d4_m3JY'}
                     events={{ googleCalendarId: 'placmezica@gmail.com' }}
                     header={{ left: 'title', center: '', right: 'dayGridMonth today prev,next' }}
                     buttonText={{ today: "Danes", month: "Mesec", week: "Teden", day: "Dan", list: "Seznam" }}

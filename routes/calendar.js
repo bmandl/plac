@@ -2,7 +2,7 @@ let express = require('express');
 let router = express.Router();
 let { google } = require('googleapis');
 const { calendar } = require('googleapis/build/src/apis/calendar');
-let privatekey = require('path').resolve(__dirname, '..') + "\\privatekey.json";
+let privatekey = require('path').resolve(__dirname, '..') + "/privatekey.json";
 
 let googleCalendar = (() => {
 
@@ -18,7 +18,6 @@ let googleCalendar = (() => {
         try {
             const res = await _auth.getClient();
             google.options('auth', res);
-            //console.log(res);
             return 200;
         }
         catch (err) {
