@@ -73,7 +73,8 @@ const EventForm = (props) => {
                     <input type="text" placeholder="Opombe" name="Opombe" ref={register} />
 
                     <input type="submit" value="Potrdi" />
-                    <button onClick={props.onClose}>Prekliči</button>
+                    <button type="button" onClick={props.onClose}>Prekliči</button>
+                    {props.eventId && <button type="button" onClick={props.onDelete}>Izbriši</button>}
                 </form>
             </div>
         </div>

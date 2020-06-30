@@ -1,6 +1,7 @@
 let express = require('express');
 let router = express.Router();
 let { google } = require('googleapis');
+const { calendar } = require('googleapis/build/src/apis/calendar');
 let privatekey = require('path').resolve(__dirname, '..') + "\\privatekey.json";
 
 let googleCalendar = (() => {
@@ -27,14 +28,14 @@ let googleCalendar = (() => {
     }
 
 
-    let list = () => {
+    const list = () => {
         return _calendar.events.list({
             auth: _auth,
             calendarId: 'placmezica@gmail.com'
         });
     }
 
-    let insert = (event) => {
+    const insert = event => {
 
         return _calendar.events.insert({
             auth: _auth,
@@ -93,10 +94,19 @@ let googleCalendar = (() => {
         })
     }
 
+    const deleteEvent = eventId => {
+        return _calendar.events.delete({
+            auth: _auth,
+            calendarId: 'placmezica@gmail.com',
+            eventId
+        });
+    }
+
     return {
         authClient: () => _connect(),
         list,
-        insert
+        insert,
+        deleteEvent
     }
 
 })();
@@ -136,5 +146,16 @@ router.post('/insert', (req, res, next) => {
             res.status(500).send(err);
         });
 });
+
+router.delete('/delete/:eventId', (req, res, next) => {
+    googleCalendar.deleteEvent(req.params.eventId).then(
+        obj => {
+            res.status(200).json(obj);
+        },
+        err => {
+            //console.log(err);
+            res.status(500).send(err);
+        });
+})
 
 module.exports = router;

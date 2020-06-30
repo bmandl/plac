@@ -28,6 +28,14 @@ const Home = () => {
         if (!selectable) calendarRef.current.getApi().updateSize();
     })
 
+    useEffect(() => {
+        if (eventId){
+            //handleTimeSelect(calendarRef.current.getApi().getEventById(eventId));
+            calendarRef.current.getApi().refetchEvents();
+            console.log(calendarRef.current.getApi().getEvents())   //not working becouse of google source - clientside memory is empty - fix it!
+        }
+    }, [eventId])
+
     const handleDayClick = dateClickInfo => {
         const api = calendarRef.current.getApi();
         api.changeView("timeGridDay", dateClickInfo.date)
@@ -43,6 +51,7 @@ const Home = () => {
         //odpiranje forme za dodajanje eventa
         const api = calendarRef.current.getApi();
         setSelected({
+            id: eventId,
             title: selectionInfo.title,
             start: selectionInfo.start,
             end: selectionInfo.end,
@@ -51,12 +60,12 @@ const Home = () => {
             editable: true
         });
         setDate(selectionInfo.start.toISOString().split('T', 1)[0]); //get current date from selected event and ommit time
-        setEvents(api.getEvents());
+        api.refetchEvents();
+        setEvents(api.getEvents()); //not working becouse of google source - clientside memory is empty - fix it!
         showForm(true); //open form
     }
 
     const addEvent = formData => {
-        let id;// = eventId ? eventId : v4();
         const ref = calendarRef.current;
         const api = ref.getApi();
 
@@ -66,9 +75,8 @@ const Home = () => {
         newStart.setMinutes(formData.Od % 60);
         newEnd.setHours(Math.floor(formData.Do / 60));
         newEnd.setMinutes(formData.Do % 60);
-
         if (!eventId) { //adding new event if no event is selected for editing
-            let event = { ...selected, /*id,*/ title: formData.Namen, description: formData.Opombe }
+            let event = { ...selected, title: formData.Namen, description: formData.Opombe }
             event.start = newStart;
             event.end = newEnd;
             fetch('/api/calendar/insert', {
@@ -80,24 +88,41 @@ const Home = () => {
             }).then(response => response.json(), err => console.log(err))
                 .then(event => {
                     api.addEvent(event);
-                    id = event.id;
-                    console.log("Success. Calendar with id: " + event.id + " added.")
+                    api.refetchEvents();
+                    console.log("Success. Event with id: " + event.id + " added.")
+                    showForm(false);    //close form
                 });
         }
 
         else {  //editing existing clicked event
-            const editingEvent = api.getEventById(id);
+            const editingEvent = api.getEventById(eventId);
             editingEvent.setStart(newStart);
             editingEvent.setEnd(newEnd);
             editingEvent.setProp("title", formData.Namen);
+            showForm(false);    //close form
         }
-        showForm(false);    //close form
+        setEventId(null);   //reset id for event (unselect event)
+    }
+
+    const deleteEvent = () => {
+        const ref = calendarRef.current;
+        const api = ref.getApi();
+
+        fetch('/api/calendar/delete/' + eventId, {
+            method: 'DELETE',
+        }).then(() => {
+            api.getEventById(eventId).remove();
+            api.refetchEvents();
+            console.log("Success. Event with id: " + eventId + " deleted.");
+            showForm(false);    //close form            
+        }, err => console.log(err))
         setEventId(null);   //reset id for event (unselect event)
     }
 
     const handleEventClick = eventClickInfo => {
+        eventClickInfo.jsEvent.preventDefault();    // don't let the browser navigate
         setEventId(eventClickInfo.event.id);
-        handleTimeSelect(eventClickInfo.event);
+        //handleTimeSelect(eventClickInfo.event);
     }
 
     return (
@@ -117,10 +142,12 @@ const Home = () => {
             {formVisible &&
                 <EventForm date={date}
                     events={events}
+                    eventId={selected.id}
                     title={selected.title}
                     start={selected.start.getHours() * 60 + selected.start.getMinutes()}
                     end={selected.end.getHours() * 60 + selected.end.getMinutes()}
                     onClose={() => showForm(false)}
+                    onDelete={deleteEvent}
                     onSubmit={addEvent}
                 />}
         </>
