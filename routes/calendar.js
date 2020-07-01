@@ -28,10 +28,11 @@ let googleCalendar = (() => {
 
 
     const list = () => {
-        return _calendar.events.list({
+        let items =  _calendar.events.list({
             auth: _auth,
             calendarId: 'placmezica@gmail.com'
         });
+        return items.then(obj => gcalItemsToRawEventDefs(obj.data.items));
     }
 
     const insert = event => {
@@ -101,6 +102,28 @@ let googleCalendar = (() => {
         });
     }
 
+    function gcalItemsToRawEventDefs(items, gcalTimezone) {
+        return items.map(function (item) {
+            return gcalItemToRawEventDef(item, gcalTimezone);
+        });
+    }
+    function gcalItemToRawEventDef(item, gcalTimezone) {
+        var url = item.htmlLink || null;
+        // make the URLs for each event show times in the correct timezone
+        /*if (url && gcalTimezone) {
+            url = injectQsComponent(url, 'ctz=' + gcalTimezone);
+        }*/
+        return {
+            id: item.id,
+            title: item.summary,
+            start: item.start.dateTime || item.start.date,
+            end: item.end.dateTime || item.end.date,
+            url: url,
+            location: item.location,
+            description: item.description
+        };
+    }
+
     return {
         authClient: () => _connect(),
         list,
@@ -116,7 +139,7 @@ router.use((req, res, next) => {
 })
 
 router.get('/list', (req, res, next) => {
-    googleCalendar.list().then(
+    /*googleCalendar.list().then(
         obj => {
             const events = obj.data.items;
             if (events.length == 0) {
@@ -126,10 +149,12 @@ router.get('/list', (req, res, next) => {
             for (let event of events) {
                 text += ('Event name: %s, Creator name: %s, Create date: %s\n', event.summary, event.creator.displayName, event.start.date);
             }
-            res.status(200).send(text);
+            console.log(events);
+            res.status(200).json(events);//send(text);
         },
         err => res.status(500).send(err)
-    );
+    );*/
+    googleCalendar.list().then(data=>res.json(data));
 });
 
 router.post('/insert', (req, res, next) => {
