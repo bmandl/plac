@@ -1,13 +1,13 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var calendarRouter = require('./routes/calendar');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+const calendarRouter = require('./routes/calendar');
 
-var app = express();
+const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
