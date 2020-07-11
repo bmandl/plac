@@ -2,12 +2,12 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const calendarRouter = require('./routes/calendar');
+const routes = require('./routes/index');
 
 const app = express();
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+  }
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -15,8 +15,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/api/calendar', calendarRouter);
+app.use(routes);
 
 module.exports = app;

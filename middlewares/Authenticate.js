@@ -1,6 +1,7 @@
 const UserAuth = (() => {
-  const authenticate = () => {
-    //authenticate user with passport library
+  const authenticate = (req,res,next) => {
+    // authenticate user with passport library
+    next();
   };
 
   return {
