@@ -14,8 +14,7 @@ const UserAuth = (() => {
 
   const authenticate = (req, res, next) => {
     // authenticate user with passport library
-    passport.authenticate('local', { failureRedirect: '/login' }); // check absolute url
-    next();
+    passport.authenticate('local', { failureRedirect: '/login', session: false })(req, res, next);
   };
 
   return {

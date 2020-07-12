@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 
 const User = (() => {
-  const find = (username) => {
-
+  const find = async (username) => {
+    console.log("test");
+    return null;
   };
 
   return {
