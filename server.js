@@ -6,8 +6,8 @@ const routes = require('./routes/index');
 
 const app = express();
 if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-  }
+  require('dotenv').config();
+}
 
 app.use(logger('dev'));
 app.use(express.json());

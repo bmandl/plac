@@ -71,7 +71,7 @@ const Home = () => {
             let event = { ...selected, title: formData.Namen, description: formData.Opombe }
             event.start = newStart;
             event.end = newEnd;
-            fetch('/api/calendar/insert', {
+            fetch('/api/events/insert', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -100,7 +100,7 @@ const Home = () => {
         const ref = calendarRef.current;
         const api = ref.getApi();
 
-        fetch('/api/calendar/delete/' + eventId, {
+        fetch('/api/events/delete/' + eventId, {
             method: 'DELETE',
         }).then(() => {
             api.getEventById(eventId).remove();
@@ -121,7 +121,7 @@ const Home = () => {
             <div className="calendar-container">
                 <FullCalendar ref={calendarRef} defaultView="dayGridMonth" /*timeZone="Europe/Belgrade"*/ plugins={[dayGridPlugin, timeGridPlugin, interaction, googleCalendarPlugin]} height={"parent"} locale="sl" editable={true} selectable={selectable} eventOverlap={false}
                     googleCalendarApiKey={'AIzaSyALhZsxEXSniZvvpy4IpysyHZ47d4_m3JY'}
-                    events={'/api/calendar/list'/*{ googleCalendarId: 'placmezica@gmail.com' }*/}
+                    events={'/api/events/list'/*{ googleCalendarId: 'placmezica@gmail.com' }*/}
                     header={{ left: 'title', center: '', right: 'dayGridMonth today prev,next' }}
                     buttonText={{ today: "Danes", month: "Mesec", week: "Teden", day: "Dan", list: "Seznam" }}
                     dateClick={handleDayClick}
