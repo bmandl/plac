@@ -12,13 +12,28 @@ const UserAuth = (() => {
     ,
   ));
 
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+
+  passport.deserializeUser((id, done) => {
+    done(null, User.find(id));
+  });
+
   const authenticate = (req, res, next) => {
     // authenticate user with passport library
-    passport.authenticate('local', { failureRedirect: '/login', session: false })(req, res, next);
+    passport.authenticate('local', { failureRedirect: '/login', successRedirect: '/api/events/list', session: true })(req, res, next);
+  };
+
+  const isLoggedIn = (req, res, next) => {
+    if (req.user) next();
+    res.redirect('/login');
+    res.end();
   };
 
   return {
     authenticate,
+    isLoggedIn,
   };
 })();
 

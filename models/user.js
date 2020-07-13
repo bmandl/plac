@@ -1,10 +1,14 @@
 const mongoose = require('mongoose');
 
 const User = (() => {
-  const find = async (username) => {
-    console.log("test");
-    return null;
-  };
+  const find = (username) => new Promise((resolve, reject) => {
+    resolve({
+      validPassword: () => true,
+      username: 'test',
+      password: 'test',
+      id: 1,
+    });
+  });
 
   return {
     find,
