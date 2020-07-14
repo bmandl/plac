@@ -4,40 +4,47 @@ const User = require('../models/user');
 
 const UserAuth = (() => {
   passport.use(new LocalStrategy( // definition for local authenticate strategy
-    (username, password, done) => User.find(username).then((user) => {
-      if (!user) return done(null, false, { message: 'Incorrect username' });
-      if (!user.validPassword(password)) return done(null, false, { message: 'Incorrect password' });
-      return done(null, user);
-    }).catch((err) => done(err))
-    ,
+    async (username, password, done) => {
+      try {
+        const user = await User.find(username);
+        if (!user) return done(null, false, { message: 'Incorrect username' });
+        if (!user.validPassword(password)) return done(null, false, { message: 'Incorrect password' });
+        return done(null, user);
+      } catch (error) {
+        return done(error);
+      }
+    },
   ));
 
   passport.serializeUser((user, done) => {
-    done(null, user.id);
+    done(null, user._id.toString());
   });
 
-  passport.deserializeUser((id, done) => {
-    done(null, User.find(id));
+  passport.deserializeUser(async (id, done) => {
+    try {
+      const user = await User.findById(id);
+      done(null, user);
+    } catch (error) {
+      done(error, null);
+    }
   });
 
   const authenticate = (req, res, next) => {
     passport.authenticate('local', { session: true }, (err, user, info) => {
-      console.log(user);
       if (err) { return next(err); }
       if (!user) { return res.redirect('/login'); }
       req.logIn(user, (err) => {
         if (err) { return next(err); }
-        return res.redirect('/api/events/list');
+        return res.redirect('/');
       });
     })(req, res, next);
   };
 
   const isLoggedIn = (req, res, next) => {
     if (req.user) {
-      console.log(req.user);
       return next();
     }
-    res.redirect('/login');
+    return res.redirect('/login');
   };
 
   return {
