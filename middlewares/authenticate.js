@@ -21,14 +21,23 @@ const UserAuth = (() => {
   });
 
   const authenticate = (req, res, next) => {
-    // authenticate user with passport library
-    passport.authenticate('local', { failureRedirect: '/login', successRedirect: '/api/events/list', session: true })(req, res, next);
+    passport.authenticate('local', { session: true }, (err, user, info) => {
+      console.log(user);
+      if (err) { return next(err); }
+      if (!user) { return res.redirect('/login'); }
+      req.logIn(user, (err) => {
+        if (err) { return next(err); }
+        return res.redirect('/api/events/list');
+      });
+    })(req, res, next);
   };
 
   const isLoggedIn = (req, res, next) => {
-    if (req.user) next();
+    if (req.user) {
+      console.log(req.user);
+      return next();
+    }
     res.redirect('/login');
-    res.end();
   };
 
   return {
