@@ -14,6 +14,7 @@ const EventController = (() => {
     /* if (url && gcalTimezone) {
                   url = injectQsComponent(url, 'ctz=' + gcalTimezone);
               } */
+    console.log(item);
     return {
       id: item.id,
       title: item.summary,

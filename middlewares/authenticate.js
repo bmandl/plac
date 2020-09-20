@@ -30,6 +30,7 @@ const UserAuth = (() => {
   });
 
   const authenticate = (req, res, next) => {
+    console.log('test');
     passport.authenticate('local', { session: true }, (err, user, info) => {
       if (err) { return next(err); }
       if (!user) { return res.redirect('/login'); }

@@ -11,29 +11,23 @@ const Home = () => {
   const [selectable, setSelectable] = useState();
   const [formVisible, showForm] = useState();
   const [selected, setSelected] = useState();
-  const [eventId, setEventId] = useState();
-  const [events, setEvents] = useState();
+  const [eventId, setEventId] = useState(null);
+  const [events, setEvents] = useState([]);
   const [date, setDate] = useState();
 
   useEffect(() => {
-    // const api = calendarRef.current.getApi();
-    // api.refetchEvents();
-    if (eventId) handleTimeSelect(api.getEventById(eventId));
-  }, [eventId]);
+    fetch('/api/events/list').then((response) => response.json()).then((data) => {
+      setEvents(data.map((event) => { // changing start and end elements of event object to Date objects instead of String - causing issues with differend views.
+        event.start = new Date(event.start);
+        event.end = new Date(event.end);
+        return event;
+      }));
+    }).catch((err) => console.log(err));
 
-  const handleDayClick = (dateClickInfo) => {
-    const api = calendarRef.current.getApi();
-    api.changeView('timeGridDay', dateClickInfo.date);
-    if (!selectable) setSelectable(true);
-    setDate(api.formatIso(api.getDate(), { omitTime: true }));
-  };
-
-  const handleMonthClick = (el) => {
-    if (el.view.type != 'timeGridDay') setSelectable(false);
-  };
+    if (eventId) handleTimeSelect(events.find((event) => event.id === eventId)); // loop over events array to find event with selected id
+  }, [eventId, formVisible]);
 
   const handleTimeSelect = (selectionInfo) => {
-    console.log(selectionInfo);
     // odpiranje forme za dodajanje eventa
     // const api = calendarRef.current.getApi();
     setSelected({
@@ -45,16 +39,13 @@ const Home = () => {
       startEditable: true,
       editable: true,
     });
-    setDate(new Date(selectionInfo.start).toISOString().split('T', 1)[0]); // get current date from selected event and ommit time
+    setDate(moment(selectionInfo.start).toISOString(true).split('T', 1)[0]); // get current date from selected event and ommit time
     // api.refetchEvents();
     // setEvents(api.getEvents());
     showForm(true); // open form
   };
 
   const addEvent = (formData) => {
-    const ref = calendarRef.current;
-    const api = ref.getApi();
-
     const newStart = new Date(formData.Datum); // new start from form
     const newEnd = new Date(formData.Datum); // new end from form
     newStart.setHours(Math.floor(formData.Od / 60));
@@ -73,30 +64,23 @@ const Home = () => {
         body: JSON.stringify(event),
       }).then((response) => response.json(), (err) => console.log(err))
         .then((event) => {
-          api.addEvent(event);
-          api.refetchEvents();
           console.log(`Success. Event with id: ${event.id} added.`);
           showForm(false); // close form
         });
     } else { // editing existing clicked event
-      const editingEvent = api.getEventById(eventId);
+      /* const editingEvent = events.find((event) => event.id === eventId);
       editingEvent.setStart(newStart);
       editingEvent.setEnd(newEnd);
-      editingEvent.setProp('title', formData.Namen);
+      editingEvent.setProp('title', formData.Namen); */
       showForm(false); // close form
     }
     setEventId(null); // reset id for event (unselect event)
   };
 
   const deleteEvent = () => {
-    const ref = calendarRef.current;
-    const api = ref.getApi();
-
     fetch(`/api/events/delete/${eventId}`, {
       method: 'DELETE',
     }).then(() => {
-      api.getEventById(eventId).remove();
-      api.refetchEvents();
       console.log(`Success. Event with id: ${eventId} deleted.`);
       showForm(false); // close form
     }, (err) => console.log(err));
@@ -104,8 +88,7 @@ const Home = () => {
   };
 
   const handleEventClick = (eventClickInfo) => {
-    eventClickInfo.jsEvent.preventDefault(); // don't let the browser navigate
-    setEventId(eventClickInfo.event.id);
+    setEventId(eventClickInfo.id);
   };
 
   return (
@@ -114,8 +97,9 @@ const Home = () => {
         <Calendar
           selectable
           localizer={localizer}
-          events={[]}
+          events={events}
           onSelectSlot={handleTimeSelect}
+          onSelectEvent={handleEventClick}
         />
       </div>
       {formVisible
@@ -127,7 +111,7 @@ const Home = () => {
                   title={selected.title}
                   start={selected.start.getHours() * 60 + selected.start.getMinutes()}
                   end={selected.end.getHours() * 60 + selected.end.getMinutes()}
-                  onClose={() => showForm(false)}
+                  onClose={() => { showForm(false); setEventId(null); }}
                   onDelete={deleteEvent}
                   onSubmit={addEvent}
                 />
