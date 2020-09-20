@@ -31,22 +31,15 @@ const EventForm = (props) => {
     return times;
   };
 
-  const validateDuration = () => {
-    const events = [];
-    props.events.map((event) => {
-      events.push({ start: new Date(event.start), end: new Date(event.end) });
-    });
-
-    return props.events.length == 0 || events.every((event) => {
-      const Od = new Date(watch('Datum'));
-      const Do = new Date(watch('Datum'));
-      Od.setHours(Math.floor(watch('Od') / 60));
-      Od.setMinutes(watch('Od') % 60);
-      Do.setHours(Math.floor(watch('Do') / 60));
-      Do.setMinutes(watch('Do') % 60);
-      return (Od < event.start && Do <= event.start) || (Od >= event.end && Do > event.end);
-    });
-  };
+  const validateDuration = () => props.events.length === 0 || props.events.every((event) => {
+    const Od = new Date(watch('Datum'));
+    const Do = new Date(watch('Datum'));
+    Od.setHours(Math.floor(watch('Od') / 60));
+    Od.setMinutes(watch('Od') % 60);
+    Do.setHours(Math.floor(watch('Do') / 60));
+    Do.setMinutes(watch('Do') % 60);
+    return (Od < event.start && Do <= event.start) || (Od >= event.end && Do > event.end) || event.id === props.eventId;
+  });
 
   return (
     <div className={styles.modal}>

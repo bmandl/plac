@@ -68,13 +68,22 @@ const Home = () => {
           showForm(false); // close form
         });
     } else { // editing existing clicked event
-      /* const editingEvent = events.find((event) => event.id === eventId);
-      editingEvent.setStart(newStart);
-      editingEvent.setEnd(newEnd);
-      editingEvent.setProp('title', formData.Namen); */
-      showForm(false); // close form
+      const editingEvent = events.find((event) => event.id === eventId);
+      editingEvent.start = newStart;
+      editingEvent.end = newEnd;
+      editingEvent.title = formData.Namen;
+      fetch(`/api/events/update/${eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editingEvent),
+      }).then(() => {
+        console.log(`Success. Event with id: ${eventId} updated. `);
+        showForm(false); // close form
+      }).catch((err) => console.error(err));
+      setEventId(null); // reset id for event (unselect event)
     }
-    setEventId(null); // reset id for event (unselect event)
   };
 
   const deleteEvent = () => {

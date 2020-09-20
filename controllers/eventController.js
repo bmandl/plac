@@ -50,53 +50,53 @@ const EventController = (() => {
         calendarId: 'placmezica@gmail.com',
         // Request body metadata
         requestBody:
-            // request body parameters
-            {
-              //   "anyoneCanAddSelf": false,
-              //   "attachments": [],
-              // "attendees": event.attendees,
-              //   "attendeesOmitted": false,
-              //   "colorId": "my_colorId",
-              //   "conferenceData": {},
-              //   "created": "my_created",
-              // "creator": event.creator,
-              description: event.description,
-              end: {
-                // timeZone: "Europe/Belgrade",
-                dateTime: event.end,
-              },
-              //   "endTimeUnspecified": false,
-              //   "etag": "my_etag",
-              // "extendedProperties": event.extendedProperties,
-              //   "gadget": {},
-              //   "guestsCanInviteOthers": false,
-              //   "guestsCanModify": false,
-              //   "guestsCanSeeOtherGuests": false,
-              //   "hangoutLink": "my_hangoutLink",
-              //   "htmlLink": "my_htmlLink",
-              //   "iCalUID": "my_iCalUID",
-              // "id": event.id,
-              //   "kind": "my_kind",
-              //   "location": "my_location",
-              //   "locked": false,
-              // "organizer": event.organizer,
-              //   "originalStartTime": {},
-              //   "privateCopy": false,
-              //   "recurrence": [],
-              //   "recurringEventId": "my_recurringEventId",
-              //   "reminders": {},
-              //   "sequence": 0,
-              //   "source": {},
-              start: {
-                // timeZone: "Europe/Belgrade",
-                dateTime: event.start,
-              },
-              // "status": event.status,
-              summary: event.title,
-              //   "transparency": "my_transparency",
-              //   "updated": "my_updated",
-              //   "visibility": "my_visibility"
-            },
+        // request body parameters
+        {
+          //   "anyoneCanAddSelf": false,
+          //   "attachments": [],
+          // "attendees": event.attendees,
+          //   "attendeesOmitted": false,
+          //   "colorId": "my_colorId",
+          //   "conferenceData": {},
+          //   "created": "my_created",
+          // "creator": event.creator,
+          description: event.description,
+          end: {
+            // timeZone: "Europe/Belgrade",
+            dateTime: event.end,
+          },
+          //   "endTimeUnspecified": false,
+          //   "etag": "my_etag",
+          // "extendedProperties": event.extendedProperties,
+          //   "gadget": {},
+          //   "guestsCanInviteOthers": false,
+          //   "guestsCanModify": false,
+          //   "guestsCanSeeOtherGuests": false,
+          //   "hangoutLink": "my_hangoutLink",
+          //   "htmlLink": "my_htmlLink",
+          //   "iCalUID": "my_iCalUID",
+          // "id": event.id,
+          //   "kind": "my_kind",
+          //   "location": "my_location",
+          //   "locked": false,
+          // "organizer": event.organizer,
+          //   "originalStartTime": {},
+          //   "privateCopy": false,
+          //   "recurrence": [],
+          //   "recurringEventId": "my_recurringEventId",
+          //   "reminders": {},
+          //   "sequence": 0,
+          //   "source": {},
+          start: {
+            // timeZone: "Europe/Belgrade",
+            dateTime: event.start,
+          },
+          // "status": event.status,
+          summary: event.title,
+          //   "transparency": "my_transparency",
+          //   "updated": "my_updated",
+          //   "visibility": "my_visibility"
+        },
       });
       if (response.data) res.json(response.data);
     } catch (err) {
@@ -117,10 +117,35 @@ const EventController = (() => {
     }
   };
 
+  const update = async (req, res) => {
+    const { eventId } = req.params;
+    const event = req.body;
+    try {
+      const response = await googleCalendar.events.update({
+        calendarId: 'placmezica@gmail.com',
+        eventId,
+        requestBody: {
+          end: {
+            dateTime: event.end,
+          },
+          start: {
+            dateTime: event.start,
+          },
+          summary: event.title,
+          description: event.description,
+        },
+      });
+      res.json(response);
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  };
+
   return {
     list,
     insert,
     remove,
+    update,
   };
 })();
 
