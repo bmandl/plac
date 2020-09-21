@@ -1,4 +1,4 @@
-import Google from '../../../services/googleCalendar';
+import Google from '../../../services/googleApis';
 
 export default async (req, res) => {
   const google = new Google();
