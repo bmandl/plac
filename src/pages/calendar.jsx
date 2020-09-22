@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
+import { signIn, signOut, useSession } from 'next-auth/client';
 
 import EventForm from '../components/EventForm';
 
@@ -14,6 +15,7 @@ const Home = () => {
   const [eventId, setEventId] = useState(null);
   const [events, setEvents] = useState([]);
   const [date, setDate] = useState();
+  const [session, loading] = useSession();
 
   useEffect(() => {
     fetch('/api/events/list').then((response) => response.json()).then((data) => {
@@ -102,6 +104,16 @@ const Home = () => {
 
   return (
     <>
+      {!session && (
+      <>
+        Not signed in
+        {' '}
+        <br />
+        <button onClick={signIn}>Sign in</button>
+      </>
+      )}
+      {session
+      && (
       <div className="calendar-container">
         <Calendar
           selectable
@@ -111,6 +123,7 @@ const Home = () => {
           onSelectEvent={handleEventClick}
         />
       </div>
+      )}
       {formVisible
                 && (
                 <EventForm
