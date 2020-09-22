@@ -3,12 +3,14 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import useSWR from 'swr';
+import fetch from 'unfetch';
 
 import EventForm from '../components/EventForm';
+import Loading from '../components/Loading';
 
 const Home = () => {
   const localizer = momentLocalizer(moment);
-  const fetcher = (...args) => fetch(...args).then((res) => res.json());
+  const fetcher = (url) => fetch(url).then((res) => res.json());
   const calendarRef = useRef(null);
   const [selectable, setSelectable] = useState();
   const [formVisible, showForm] = useState();
@@ -17,17 +19,13 @@ const Home = () => {
   const [events, setEvents] = useState([]);
   const [date, setDate] = useState();
   const [session, loading] = useSession();
-  const { data, error } = useSWR('/api/events/list', fetcher);
+  const {
+    data, mutate, error, isValidating,
+  } = useSWR('/api/events/list', fetcher);
 
   useEffect(() => {
-    /* fetch('/api/events/list').then((response) => response.json()).then((data) => {
-      setEvents(data.map((event) => { // changing start and end elements of event object to Date objects instead of String - causing issues with differend views.
-        event.start = new Date(event.start);
-        event.end = new Date(event.end);
-        return event;
-      }));
-    }).catch((err) => console.log(err)); */
     if (data) {
+      // eslint-disable-next-line max-len
       setEvents(data.map((event) => { // changing start and end elements of event object to Date objects instead of String - causing issues with differend views.
         event.start = new Date(event.start);
         event.end = new Date(event.end);
@@ -35,8 +33,9 @@ const Home = () => {
       }));
     }
 
+    // eslint-disable-next-line max-len
     if (eventId) handleTimeSelect(events.find((event) => event.id === eventId)); // loop over events array to find event with selected id
-  }, [eventId, formVisible]);
+  }, [data, formVisible, eventId]);
 
   const handleTimeSelect = (selectionInfo) => {
     // odpiranje forme za dodajanje eventa
@@ -77,6 +76,7 @@ const Home = () => {
         .then((event) => {
           console.log(`Success. Event with id: ${event.id} added.`);
           showForm(false); // close form
+          mutate(); // refresh data
         });
     } else { // editing existing clicked event
       const editingEvent = events.find((event) => event.id === eventId);
@@ -92,6 +92,7 @@ const Home = () => {
       }).then(() => {
         console.log(`Success. Event with id: ${eventId} updated. `);
         showForm(false); // close form
+        mutate(); // refresh data
       }).catch((err) => console.error(err));
       setEventId(null); // reset id for event (unselect event)
     }
@@ -103,6 +104,7 @@ const Home = () => {
     }).then(() => {
       console.log(`Success. Event with id: ${eventId} deleted.`);
       showForm(false); // close form
+      mutate(); // refresh data
     }, (err) => console.log(err));
     setEventId(null); // reset id for event (unselect event)
   };
@@ -113,26 +115,30 @@ const Home = () => {
 
   return (
     <>
-      {!session && (
-      <>
-        Not signed in
-        {' '}
-        <br />
-        <button onClick={signIn}>Sign in</button>
-      </>
-      )}
-      {session
-      && (
-      <div className="calendar-container">
-        <Calendar
-          selectable
-          localizer={localizer}
-          events={events}
-          onSelectSlot={handleTimeSelect}
-          onSelectEvent={handleEventClick}
-        />
-      </div>
-      )}
+      {(session || loading)
+        ? (
+          <>
+            <div className="calendar-container">
+              <Calendar
+                selectable
+                localizer={localizer}
+                events={events}
+                onSelectSlot={handleTimeSelect}
+                onSelectEvent={handleEventClick}
+              />
+            </div>
+            {(loading || isValidating)
+              && <Loading />}
+          </>
+        )
+        : (
+          <>
+            Not signed in
+            {' '}
+            <br />
+            <button onClick={signIn}>Sign in</button>
+          </>
+        )}
       {formVisible
                 && (
                 <EventForm
