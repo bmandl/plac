@@ -2,12 +2,13 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { signIn, signOut, useSession } from 'next-auth/client';
+import useSWR from 'swr';
 
 import EventForm from '../components/EventForm';
 
 const Home = () => {
   const localizer = momentLocalizer(moment);
-
+  const fetcher = (...args) => fetch(...args).then((res) => res.json());
   const calendarRef = useRef(null);
   const [selectable, setSelectable] = useState();
   const [formVisible, showForm] = useState();
@@ -16,15 +17,23 @@ const Home = () => {
   const [events, setEvents] = useState([]);
   const [date, setDate] = useState();
   const [session, loading] = useSession();
+  const { data, error } = useSWR('/api/events/list', fetcher);
 
   useEffect(() => {
-    fetch('/api/events/list').then((response) => response.json()).then((data) => {
+    /* fetch('/api/events/list').then((response) => response.json()).then((data) => {
       setEvents(data.map((event) => { // changing start and end elements of event object to Date objects instead of String - causing issues with differend views.
         event.start = new Date(event.start);
         event.end = new Date(event.end);
         return event;
       }));
-    }).catch((err) => console.log(err));
+    }).catch((err) => console.log(err)); */
+    if (data) {
+      setEvents(data.map((event) => { // changing start and end elements of event object to Date objects instead of String - causing issues with differend views.
+        event.start = new Date(event.start);
+        event.end = new Date(event.end);
+        return event;
+      }));
+    }
 
     if (eventId) handleTimeSelect(events.find((event) => event.id === eventId)); // loop over events array to find event with selected id
   }, [eventId, formVisible]);

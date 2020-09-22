@@ -17,7 +17,8 @@
     "react-big-calendar": "^0.28.0",
     "react-dom": "16.13.1",
     "react-hook-form": "^6.8.3",
-    "sass": "^1.26.11"
+    "sass": "^1.26.11",
+    "swr": "^0.3.3"
   },
   "devDependencies": {
     "eslint": "^7.2.0",
