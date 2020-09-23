@@ -3,14 +3,13 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import useSWR from 'swr';
-import fetch from 'unfetch';
 
 import EventForm from '../components/EventForm';
+import fetcher from '../services/fetchers';
 import Loading from '../components/Loading';
 
 const Home = () => {
   const localizer = momentLocalizer(moment);
-  const fetcher = (url) => fetch(url).then((res) => res.json());
   const calendarRef = useRef(null);
   const [selectable, setSelectable] = useState();
   const [formVisible, showForm] = useState();
@@ -20,22 +19,23 @@ const Home = () => {
   const [date, setDate] = useState();
   const [session, loading] = useSession();
   const {
-    data, mutate, error, isValidating,
+    data, error, isValidating,
   } = useSWR('/api/events/list', fetcher);
 
   useEffect(() => {
-    if (data) {
+    if (!formVisible && data && !error) {
       // eslint-disable-next-line max-len
-      setEvents(data.map((event) => { // changing start and end elements of event object to Date objects instead of String - causing issues with differend views.
-        event.start = new Date(event.start);
-        event.end = new Date(event.end);
-        return event;
-      }));
+      setEvents(data.map((event) => // changing start and end elements of event object to Date objects instead of String - causing issues with differend views.
+        // event.start = new Date(event.start);
+        // event.end = new Date(event.end);
+        ({ ...event, start: new Date(event.start), end: new Date(event.end) })));
     }
+  }, [data]);
 
+  useEffect(() => {
     // eslint-disable-next-line max-len
     if (eventId) handleTimeSelect(events.find((event) => event.id === eventId)); // loop over events array to find event with selected id
-  }, [data, formVisible, eventId]);
+  }, [eventId]);
 
   const handleTimeSelect = (selectionInfo) => {
     // odpiranje forme za dodajanje eventa
@@ -50,9 +50,21 @@ const Home = () => {
       editable: true,
     });
     setDate(moment(selectionInfo.start).toISOString(true).split('T', 1)[0]); // get current date from selected event and ommit time
-    // api.refetchEvents();
-    // setEvents(api.getEvents());
     showForm(true); // open form
+  };
+
+  const updateEvents = ({ action, payload }) => {
+    const localEvents = events;
+    switch (action) {
+      case 'ADD': setEvents([...localEvents, payload]);
+        break;
+      case 'DELETE': setEvents(localEvents.filter((event) => event.id !== payload.id));
+        break;
+      case 'UPDATE':
+        setEvents(localEvents.map((event) => (event.id === payload.id ? payload : event)));
+        break;
+      default: break;
+    }
   };
 
   const addEvent = (formData) => {
@@ -73,10 +85,10 @@ const Home = () => {
         },
         body: JSON.stringify(event),
       }).then((response) => response.json(), (err) => console.log(err))
-        .then((event) => {
-          console.log(`Success. Event with id: ${event.id} added.`);
+        .then((data) => {
+          console.log(`Success. Event with id: ${data.id} added.`);
           showForm(false); // close form
-          mutate(); // refresh data
+          updateEvents({ action: 'ADD', payload: { ...event, id: data.id } });
         });
     } else { // editing existing clicked event
       const editingEvent = events.find((event) => event.id === eventId);
@@ -92,7 +104,7 @@ const Home = () => {
       }).then(() => {
         console.log(`Success. Event with id: ${eventId} updated. `);
         showForm(false); // close form
-        mutate(); // refresh data
+        updateEvents({ action: 'UPDATE', payload: editingEvent });
       }).catch((err) => console.error(err));
       setEventId(null); // reset id for event (unselect event)
     }
@@ -104,7 +116,7 @@ const Home = () => {
     }).then(() => {
       console.log(`Success. Event with id: ${eventId} deleted.`);
       showForm(false); // close form
-      mutate(); // refresh data
+      updateEvents({ action: 'DELETE', payload: events.find((event) => event.id === eventId) });
     }, (err) => console.log(err));
     setEventId(null); // reset id for event (unselect event)
   };
