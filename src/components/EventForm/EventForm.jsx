@@ -44,7 +44,7 @@ const EventForm = (props) => {
   return (
     <div className={styles.modal}>
       <div className={styles.container}>
-        <form onSubmit={handleSubmit(props.onSubmit)}>
+        <form onSubmit={handleSubmit(props.eventId ? props.onSubmit : props.onAdd)}>
           <input type="text" placeholder="Namen" name="Namen" ref={register({ required: true, min: 3 })} />
           <label htmlFor="Datum">Datum</label>
           <input type="date" placeholder="Datum" name="Datum" ref={register({ required: true })} />
@@ -65,7 +65,7 @@ const EventForm = (props) => {
           </select>
           <input type="text" placeholder="Opombe" name="Opombe" ref={register} />
 
-          <input type="submit" value="Potrdi" />
+          <input type="submit" value={props.eventId ? 'Uredi' : 'Dodaj'} />
           <button type="button" onClick={props.onClose}>Prekliči</button>
           {props.eventId && <button type="button" onClick={props.onDelete}>Izbriši</button>}
         </form>

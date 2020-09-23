@@ -1,22 +1,21 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import useSWR from 'swr';
 
-import EventForm from '../components/EventForm';
 import fetcher from '../services/fetchers';
+import updateEvents from '../utils/updateEvents';
+import EventForm from '../components/EventForm';
 import Loading from '../components/Loading';
 
 const Home = () => {
   const localizer = momentLocalizer(moment);
-  const calendarRef = useRef(null);
-  const [selectable, setSelectable] = useState();
   const [formVisible, showForm] = useState();
   const [selected, setSelected] = useState();
   const [eventId, setEventId] = useState(null);
   const [events, setEvents] = useState([]);
-  const [date, setDate] = useState();
+  const [selectedDate, setDate] = useState();
   const [session, loading] = useSession();
   const {
     data, error, isValidating,
@@ -53,31 +52,24 @@ const Home = () => {
     showForm(true); // open form
   };
 
-  const updateEvents = ({ action, payload }) => {
-    const localEvents = events;
-    switch (action) {
-      case 'ADD': setEvents([...localEvents, payload]);
-        break;
-      case 'DELETE': setEvents(localEvents.filter((event) => event.id !== payload.id));
-        break;
-      case 'UPDATE':
-        setEvents(localEvents.map((event) => (event.id === payload.id ? payload : event)));
-        break;
-      default: break;
-    }
+  // get new date, start time, end time from form
+  const eventDuration = (date, from, to) => {
+    const start = new Date(date); // new start from form
+    const end = new Date(date); // new end from form
+    start.setHours(Math.floor(from / 60));
+    start.setMinutes(from % 60);
+    end.setHours(Math.floor(to / 60));
+    end.setMinutes(to % 60);
+
+    return { start, end };
   };
 
   const addEvent = (formData) => {
-    const newStart = new Date(formData.Datum); // new start from form
-    const newEnd = new Date(formData.Datum); // new end from form
-    newStart.setHours(Math.floor(formData.Od / 60));
-    newStart.setMinutes(formData.Od % 60);
-    newEnd.setHours(Math.floor(formData.Do / 60));
-    newEnd.setMinutes(formData.Do % 60);
     if (!eventId) { // adding new event if no event is selected for editing
+      const { start, end } = eventDuration(formData.Datum, formData.Od, formData.Do);
       const event = { ...selected, title: formData.Namen, description: formData.Opombe };
-      event.start = newStart;
-      event.end = newEnd;
+      event.start = start;
+      event.end = end;
       fetch('/api/events/insert', {
         method: 'POST',
         headers: {
@@ -88,26 +80,30 @@ const Home = () => {
         .then((data) => {
           console.log(`Success. Event with id: ${data.id} added.`);
           showForm(false); // close form
-          updateEvents({ action: 'ADD', payload: { ...event, id: data.id } });
+          setEvents(updateEvents(events, { action: 'ADD', payload: { ...event, id: data.id } }));
         });
-    } else { // editing existing clicked event
-      const editingEvent = events.find((event) => event.id === eventId);
-      editingEvent.start = newStart;
-      editingEvent.end = newEnd;
-      editingEvent.title = formData.Namen;
-      fetch(`/api/events/update/${eventId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editingEvent),
-      }).then(() => {
-        console.log(`Success. Event with id: ${eventId} updated. `);
-        showForm(false); // close form
-        updateEvents({ action: 'UPDATE', payload: editingEvent });
-      }).catch((err) => console.error(err));
-      setEventId(null); // reset id for event (unselect event)
     }
+  };
+
+  const updateEvent = (formData) => {
+    // editing existing clicked event
+    const { start, end } = eventDuration(formData.Datum, formData.Od, formData.Do);
+    const editingEvent = events.find((event) => event.id === eventId);
+    editingEvent.start = start;
+    editingEvent.end = end;
+    editingEvent.title = formData.Namen;
+    fetch(`/api/events/update/${eventId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(editingEvent),
+    }).then(() => {
+      console.log(`Success. Event with id: ${eventId} updated. `);
+      showForm(false); // close form
+      setEvents(updateEvents(events, { action: 'UPDATE', payload: editingEvent }));
+    }).catch((err) => console.error(err));
+    setEventId(null); // reset id for event (unselect event)
   };
 
   const deleteEvent = () => {
@@ -116,7 +112,7 @@ const Home = () => {
     }).then(() => {
       console.log(`Success. Event with id: ${eventId} deleted.`);
       showForm(false); // close form
-      updateEvents({ action: 'DELETE', payload: events.find((event) => event.id === eventId) });
+      setEvents(updateEvents(events, { action: 'DELETE', payload: events.find((event) => event.id === eventId) }));
     }, (err) => console.log(err));
     setEventId(null); // reset id for event (unselect event)
   };
@@ -154,7 +150,7 @@ const Home = () => {
       {formVisible
                 && (
                 <EventForm
-                  date={date}
+                  date={selectedDate}
                   events={events}
                   eventId={selected.id}
                   title={selected.title}
@@ -162,7 +158,8 @@ const Home = () => {
                   end={selected.end.getHours() * 60 + selected.end.getMinutes()}
                   onClose={() => { showForm(false); setEventId(null); }}
                   onDelete={deleteEvent}
-                  onSubmit={addEvent}
+                  onSubmit={updateEvent}
+                  onAdd={addEvent}
                 />
                 )}
     </>
