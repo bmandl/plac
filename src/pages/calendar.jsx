@@ -4,8 +4,17 @@ import moment from 'moment';
 import { signIn, signOut, useSession } from 'next-auth/client';
 import useSWR from 'swr';
 
+// services
 import fetcher from '../services/fetchers';
+import addEvent from '../services/addEvent';
+import updateEvent from '../services/updateEvent';
+import deleteEvent from '../services/deleteEvent';
+
+// utils
 import updateEvents from '../utils/updateEvents';
+import getEditingEvent from '../utils/getEditingEvent';
+
+// components
 import EventForm from '../components/EventForm';
 import Loading from '../components/Loading';
 
@@ -17,28 +26,31 @@ const Home = () => {
   const [events, setEvents] = useState([]);
   const [selectedDate, setDate] = useState();
   const [session, loading] = useSession();
+  const [editingEvent, setEditingEvent] = useState();
   const {
     data, error, isValidating,
   } = useSWR('/api/events/list', fetcher);
 
-  useEffect(() => {
+  useEffect(() => { // fetching new data on refreshing
     if (!formVisible && data && !error) {
       // eslint-disable-next-line max-len
-      setEvents(data.map((event) => // changing start and end elements of event object to Date objects instead of String - causing issues with differend views.
-        // event.start = new Date(event.start);
-        // event.end = new Date(event.end);
-        ({ ...event, start: new Date(event.start), end: new Date(event.end) })));
+      // changing start and end elements of event object to Date objects instead of String - causing issues with differend views.
+      // eslint-disable-next-line max-len
+      setEvents(data.map((event) => ({ ...event, start: new Date(event.start), end: new Date(event.end) })));
     }
   }, [data]);
 
-  useEffect(() => {
-    // eslint-disable-next-line max-len
-    if (eventId) handleTimeSelect(events.find((event) => event.id === eventId)); // loop over events array to find event with selected id
+  useEffect(() => { // seting editing event when clicked on event or form closed
+    if (eventId) {
+      // eslint-disable-next-line max-len
+      handleTimeSelect(events.find((event) => event.id === eventId)); // loop over events array to find event with selected id
+      setEditingEvent(getEditingEvent(events, eventId));
+    }
+    if (!formVisible && !eventId) setEditingEvent(null);
   }, [eventId]);
 
   const handleTimeSelect = (selectionInfo) => {
-    // odpiranje forme za dodajanje eventa
-    // const api = calendarRef.current.getApi();
+    // opening form for event adding
     setSelected({
       id: eventId,
       title: selectionInfo.title,
@@ -52,73 +64,34 @@ const Home = () => {
     showForm(true); // open form
   };
 
-  // get new date, start time, end time from form
-  const eventDuration = (date, from, to) => {
-    const start = new Date(date); // new start from form
-    const end = new Date(date); // new end from form
-    start.setHours(Math.floor(from / 60));
-    start.setMinutes(from % 60);
-    end.setHours(Math.floor(to / 60));
-    end.setMinutes(to % 60);
-
-    return { start, end };
+  const handleAddEvent = async (formData) => {
+    // adding event to google Calendar and refreshing local event data without fetching
+    setEvents(updateEvents(events, await addEvent(selected, eventId, formData)));
+    showForm(false);
   };
 
-  const addEvent = (formData) => {
-    if (!eventId) { // adding new event if no event is selected for editing
-      const { start, end } = eventDuration(formData.Datum, formData.Od, formData.Do);
-      const event = { ...selected, title: formData.Namen, description: formData.Opombe };
-      event.start = start;
-      event.end = end;
-      fetch('/api/events/insert', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(event),
-      }).then((response) => response.json(), (err) => console.log(err))
-        .then((data) => {
-          console.log(`Success. Event with id: ${data.id} added.`);
-          showForm(false); // close form
-          setEvents(updateEvents(events, { action: 'ADD', payload: { ...event, id: data.id } }));
-        });
-    }
-  };
-
-  const updateEvent = (formData) => {
-    // editing existing clicked event
-    const { start, end } = eventDuration(formData.Datum, formData.Od, formData.Do);
-    const editingEvent = events.find((event) => event.id === eventId);
-    editingEvent.start = start;
-    editingEvent.end = end;
-    editingEvent.title = formData.Namen;
-    fetch(`/api/events/update/${eventId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(editingEvent),
-    }).then(() => {
-      console.log(`Success. Event with id: ${eventId} updated. `);
-      showForm(false); // close form
-      setEvents(updateEvents(events, { action: 'UPDATE', payload: editingEvent }));
-    }).catch((err) => console.error(err));
+  const handleUpdateEvent = async (formData) => {
+    // updating event on google calendar and refreshing local event data without fetching
+    setEvents(updateEvents(events, await updateEvent(editingEvent, formData)));
     setEventId(null); // reset id for event (unselect event)
+    showForm(false); // close form
   };
 
-  const deleteEvent = () => {
-    fetch(`/api/events/delete/${eventId}`, {
-      method: 'DELETE',
-    }).then(() => {
-      console.log(`Success. Event with id: ${eventId} deleted.`);
-      showForm(false); // close form
-      setEvents(updateEvents(events, { action: 'DELETE', payload: events.find((event) => event.id === eventId) }));
-    }, (err) => console.log(err));
+  const handleDeleteEvent = async () => {
+    // deleting event on google Calendar and refreshing local event data without fetching
+    setEvents(updateEvents(events, await deleteEvent(editingEvent)));
     setEventId(null); // reset id for event (unselect event)
+    showForm(false);
   };
 
   const handleEventClick = (eventClickInfo) => {
+    // setting id for selected event
     setEventId(eventClickInfo.id);
+  };
+
+  const handleCloseForm = () => {
+    showForm(false);
+    setEventId(null);
   };
 
   return (
@@ -156,10 +129,10 @@ const Home = () => {
                   title={selected.title}
                   start={selected.start.getHours() * 60 + selected.start.getMinutes()}
                   end={selected.end.getHours() * 60 + selected.end.getMinutes()}
-                  onClose={() => { showForm(false); setEventId(null); }}
-                  onDelete={deleteEvent}
-                  onSubmit={updateEvent}
-                  onAdd={addEvent}
+                  onClose={handleCloseForm}
+                  onDelete={handleDeleteEvent}
+                  onSubmit={handleUpdateEvent}
+                  onAdd={handleAddEvent}
                 />
                 )}
     </>

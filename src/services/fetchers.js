@@ -1,3 +1,5 @@
 import fetch from 'unfetch';
 
-export default (url) => fetch(url).then((res) => res.json());
+const xhr = (url) => fetch(url).then((res) => res.json());
+
+export default xhr;
