@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import Google from '../../../services/googleApis';
 
 export default async (req, res) => {
@@ -25,8 +26,10 @@ export default async (req, res) => {
         summary: event.title,
       },
     });
-    if (response.data) res.json(response.data);
+    if (response.data) res.json(response.data); // response with json of added event
+    else throw new Error('Data was not received from google calendar API'); // server-side error thrown
   } catch (err) {
-    res.status(500).send(err);
+    console.error(err);
+    res.status(500).end();
   }
 };

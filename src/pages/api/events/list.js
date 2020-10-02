@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import Google from '../../../services/googleApis';
 
 export default async (req, res) => {
@@ -8,8 +9,9 @@ export default async (req, res) => {
   try {
     const response = await events;
     if (response.data.items) res.json(Google.gcalItemsToRawEventDefs(response.data.items));
+    else throw new Error('Data was not received from google calendar API');
   } catch (err) {
-    console.log(err);
-    res.status(500).send(err);
+    console.error(err);
+    res.status(500).end();
   }
 };

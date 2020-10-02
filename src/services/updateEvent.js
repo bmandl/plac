@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import eventDuration from '../utils/eventDuration';
+import errorHandler from '../utils/fetchError';
 
 const updateEvent = async (editingEvent, formData) => {
   // editing existing clicked event
@@ -9,17 +10,18 @@ const updateEvent = async (editingEvent, formData) => {
   };
   const eventId = event.id;
   try {
-    await fetch(`/api/events/update/${eventId}`, {
+    errorHandler(await fetch(`/api/events/update/${eventId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(editingEvent),
-    });
+    }), 'Event was not updated');
     console.log(`Success. Event with id: ${eventId} updated. `);
     return { action: 'UPDATE', payload: event };
-  } catch (err) {
-    throw new Error(err);
+  } catch (error) {
+    console.error(error);
+    return null;
   }
 };
 

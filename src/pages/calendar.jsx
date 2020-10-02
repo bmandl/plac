@@ -27,9 +27,7 @@ const Home = () => {
   const [selectedDate, setDate] = useState();
   const [session, loading] = useSession();
   const [editingEvent, setEditingEvent] = useState();
-  const {
-    data, error, isValidating,
-  } = useSWR('/api/events/list', fetcher);
+  const { data, error, isValidating } = useSWR('/api/events/list', fetcher);
 
   useEffect(() => { // fetching new data on refreshing
     if (!formVisible && data && !error) {
@@ -66,20 +64,23 @@ const Home = () => {
 
   const handleAddEvent = async (formData) => {
     // adding event to google Calendar and refreshing local event data without fetching
-    setEvents(updateEvents(events, await addEvent(selected, eventId, formData)));
+    const eventToAdd = await addEvent(selected, formData);
+    if (eventToAdd) setEvents(updateEvents(events, eventToAdd));
     showForm(false);
   };
 
   const handleUpdateEvent = async (formData) => {
     // updating event on google calendar and refreshing local event data without fetching
-    setEvents(updateEvents(events, await updateEvent(editingEvent, formData)));
+    const eventToUpdate = await updateEvent(editingEvent, formData);
+    if (eventToUpdate) setEvents(updateEvents(events, eventToUpdate));
     setEventId(null); // reset id for event (unselect event)
     showForm(false); // close form
   };
 
   const handleDeleteEvent = async () => {
     // deleting event on google Calendar and refreshing local event data without fetching
-    setEvents(updateEvents(events, await deleteEvent(editingEvent)));
+    const eventToDelete = await deleteEvent(editingEvent);
+    if (eventToDelete) setEvents(updateEvents(events, eventToDelete));
     setEventId(null); // reset id for event (unselect event)
     showForm(false);
   };
